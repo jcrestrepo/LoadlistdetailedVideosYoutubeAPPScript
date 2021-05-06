@@ -1,0 +1,50 @@
+function searchByChannel() {
+  var allIds =[], pageToken;
+  do {
+    var results = YouTube.Search.list('id,snippet', {
+      channelId: '',  //<----------PUT THE CHANNEL ID HERE!
+      maxResults: 50,
+      pageToken: pageToken
+    });
+    pageToken = results.nextPageToken;
+    var title = "";
+    var id = "";
+    var lr = 0;
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet1 = ss.getSheetByName("Sheet1");
+    lr = sheet1.getLastRow() + 1;
+    for (var i = 0; i < results.items.length; i++) {
+      var item = results.items[i];
+      title = item.snippet.title;
+      item.snippet.publishedAt;
+      
+      if(item.id.kind!="youtube#playlist" && item.id.kind!="youtube#channel"){
+      var  videoitems= YouTube.Videos.list('snippet,contentDetails,statistics, status',{id: item.id.videoId});
+      for(var j=0; j< videoitems.items.length; j++){
+        Logger.log("Tipo:%s Contador video:%s %s Fila:%s",item.id.kind, i.toString(), j.toString(), lr.toString());
+        var videoitem= videoitems.items[j];
+        var  category= YouTube.VideoCategories.list('snippet',{id: videoitem.snippet.categoryId});
+        sheet1.getRange(lr, 1).setValue(item.id.videoId);
+        sheet1.getRange(lr, 2).setValue(title);
+        sheet1.getRange(lr, 3).setValue(videoitem.snippet.tags.join());
+        sheet1.getRange(lr, 4).setValue(videoitem.snippet.localized.description);
+        sheet1.getRange(lr, 5).setValue(videoitem.statistics.commentCount);
+        sheet1.getRange(lr, 6).setValue(videoitem.statistics.dislikeCount);
+        sheet1.getRange(lr, 7).setValue(videoitem.statistics.favoriteCount);
+        sheet1.getRange(lr, 8).setValue(videoitem.statistics.likeCount);
+        sheet1.getRange(lr, 9).setValue(videoitem.statistics.viewCount);
+        sheet1.getRange(lr, 10).setValue(videoitem.snippet.publishedAt);
+        sheet1.getRange(lr, 11).setValue(videoitem.snippet.categoryId);
+        sheet1.getRange(lr, 12).setValue(category.items[0].snippet.title);
+        sheet1.getRange(lr, 13).setValue(videoitem.contentDetails.duration);
+        sheet1.getRange(lr, 14).setValue(videoitem.status.privacyStatus);        
+        lr++;
+      }
+    }
+     
+    }
+    }
+  } while (pageToken && results.items.length)
+}
+
+
